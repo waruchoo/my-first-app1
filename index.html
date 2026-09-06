@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>さくらんぼ計算アプリ</title>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background-color: #f0fdf4; /* bg-green-50相当 */
+    }
+    @keyframes bounceIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .bounce-in {
+      animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useLayoutEffect } = React;
+
+    // 朱色りんごのコンポーネント
+    const RedApple = () => (
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+        <defs>
+          <radialGradient id="redGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#ffb088" />
+            <stop offset="40%" stopColor="#f97316" />
+            <stop offset="100%" stopColor="#9a3412" />
+          </radialGradient>
+        </defs>
+        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
+        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#redGrad)" />
+        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
+      </svg>
+    );
+
+    // 青緑りんごのコンポーネント
+    const BlueApple = () => (
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+        <defs>
+          <radialGradient id="blueGreenGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#5eead4" />
+            <stop offset="40%" stopColor="#14b8a6" />
+            <stop offset="100%" stopColor="#0f766e" />
+          </radialGradient>
+        </defs>
+        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
+        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#blueGreenGrad)" />
+        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
+      </svg>
+    );
+
+    const Apple = ({ color }) => {
+      return color === 'red' ? <RedApple /> : <BlueApple />;
+    };
+
+    // 数字を選ぶプルダウンコンポーネント
+    const SelectNumber = ({ value, onChange, colorClass, textColorClass, ringClass }) => (
+      <div className={`relative z-10 h-16 w-16 sm:h-20 sm:w-20 ${colorClass} rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 ${ringClass}`}>
+        {/* 見た目の大きな数字 */}
+        <span className={`text-3xl sm:text-5xl font-bold ${textColorClass} pointer-events-none`}>{value}</span>
+        
+        {/* 矢印アイコン */}
+        <div className="pointer-events-none absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center">
+          <svg className={`h-3 w-3 sm:h-4 sm:w-4 ${textColorClass} opacity-60`} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
+          </svg>
+        </div>
+
+        {/* 透明なセレクトボックス（タップ判定とリスト表示用） */}
+        <select 
+          value={value}
+          onChange={onChange}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-lg"
+        >
+          {[1,2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+    );
+
+    const GridBox = ({ idPrefix, isHighlight, isLeft }) => {
+      return (
+        <div className={`grid grid-cols-5 gap-1 sm:gap-2 p-2 sm:p-3 rounded-2xl transition-all duration-700 
+          ${isHighlight ? 'bg-pink-100 ring-4 ring-pink-300 shadow-inner' : 'bg-white shadow'}`}>
+          {Array.from({length: 10}).map((_, i) => {
+            return (
+              <div key={i} id={`cell-${idPrefix}-${i}`} 
+                className={`w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl transition-all duration-500 border-gray-200 border-dashed bg-gray-50`}>
+              </div>
+            )
+          })}
+        </div>
+      );
+    };
+
+    function App() {
+      const [num1, setNum1] = useState(8);
+      const [num2, setNum2] = useState(5);
+      
+      const [step, setStep] = useState(0);
+      const [gameId, setGameId] = useState(0); // ★ゲームの回数を管理してリンゴのIDをリセットする
+      
+      const [apples, setApples] = useState([]);
+      const [cellPositions, setCellPositions] = useState({});
+      const [isInitialRender, setIsInitialRender] = useState(true);
+
+      const initGame = useCallback(() => {
+        const n1 = Math.floor(Math.random() * 8) + 2; 
+        const minN2 = Math.max(2, 11 - n1);
+        const maxN2 = 9;
+        const n2 = Math.floor(Math.random() * (maxN2 - minN2 + 1)) + minN2;
+        
+        setNum1(n1);
+        setNum2(n2);
+        setStep(0);
+        setGameId(prev => prev + 1); // ★問題が変わるたびにIDを進める
+      }, []);
+
+      useEffect(() => {
+        setIsInitialRender(true);
+        
+        const newApples = [];
+        for (let i = 0; i < num1; i++) {
+          // ★ gameId を含めることで毎回「完全に新しいリンゴ」として配置させる
+          newApples.push({ id: `red-${gameId}-${i}`, color: 'red', cellId: `cell-left-${i}`, isMoving: false, isTarget: false });
+        }
+        for (let i = 0; i < num2; i++) {
+          newApples.push({ id: `blue-${gameId}-${i}`, color: 'blue', cellId: `cell-right-${i}`, isMoving: false, isTarget: false });
+        }
+        setApples(newApples);
+        
+        // ★少し余裕をもたせてからアニメーションのロックを解除(50ms -> 100ms)
+        const timer = setTimeout(() => setIsInitialRender(false), 100);
+        return () => clearTimeout(timer);
+      }, [num1, num2, gameId]);
+
+      const updatePositions = useCallback(() => {
+        const container = document.getElementById('apple-container');
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+
+        const newCellPositions = {};
+        ['left', 'right'].forEach(side => {
+          for (let i = 0; i < 10; i++) {
+            const cellId = `cell-${side}-${i}`;
+            const cell = document.getElementById(cellId);
+            if (cell) {
+              const rect = cell.getBoundingClientRect();
+              newCellPositions[cellId] = {
+                top: rect.top - containerRect.top,
+                left: rect.left - containerRect.left,
+                width: rect.width,
+                height: rect.height,
+              };
+            }
+          }
+        });
+        setCellPositions(newCellPositions);
+      }, []);
+
+      useLayoutEffect(() => {
+        updatePositions();
+        window.addEventListener('resize', updatePositions);
+        return () => {
+          window.removeEventListener('resize', updatePositions);
+        };
+      }, [updatePositions]);
+
+      const handleNextStep = () => {
+        if (step === 0) {
+          const moveLeftToRight = num1 < num2; 
+          const movingColor = moveLeftToRight ? 'red' : 'blue';
+          const targetCellPrefix = moveLeftToRight ? 'cell-right' : 'cell-left';
+          const limit = moveLeftToRight ? num2 : num1;
+          const maxMovable = moveLeftToRight ? num1 : num2;
+          
+          const moveCount = Math.min(10 - limit, maxMovable); 
+          
+          const animTime = 1300; 
+          const waitTime = 1200; 
+          
+          // [フェーズ1] 浮き上がる
+          setStep(1);
+          setApples(prev => {
+            const next = prev.map(a => ({ ...a }));
+            let assignedCount = 0;
+            // 対象となるリンゴを下段・右側から選出
+            for (let i = next.length - 1; i >= 0; i--) {
+              const apple = next[i];
+              if (apple.color === movingColor && assignedCount < moveCount) {
+                apple.isMoving = true; 
+                apple.isTarget = true;
+                assignedCount++;
+              } else {
+                apple.isMoving = false;
+                apple.isTarget = false;
+              }
+            }
+            return next;
+          });
+
+          // [フェーズ2] 水平移動
+          setTimeout(() => {
+            setStep(2);
+            setApples(prev => {
+              const next = prev.map(a => ({ ...a }));
+              
+              // 移動するリンゴの要素と元のマスインデックスを取得
+              const movingItems = next
+                .filter(a => a.isMoving)
+                .map(a => {
+                  const idx = parseInt(a.cellId.split('-').pop());
+                  return { apple: a, idx };
+                });
+              
+              // 移動先の空きマスのインデックスリストを作成
+              const emptyIndices = [];
+              for (let i = limit; i < limit + moveCount; i++) {
+                emptyIndices.push(i);
+              }
+              
+              // ★軌道が交差しないための最重要ロジック★
+              // 見た目のX座標 (インデックス % 5) の小さい順（左から右へ）ソートする
+              const sortByX = (a, b) => {
+                const xA = a % 5;
+                const xB = b % 5;
+                if (xA !== xB) return xA - xB; // X座標が違えば左を優先
+                return a - b; // X座標が同じなら上段を優先
+              };
+              
+              movingItems.sort((a, b) => sortByX(a.idx, b.idx));
+              emptyIndices.sort(sortByX);
+              
+              // ソートした順番で1対1で割り当てることで、左のものは左へ、右のものは右へ平行移動する
+              for (let i = 0; i < movingItems.length; i++) {
+                movingItems[i].apple.cellId = `${targetCellPrefix}-${emptyIndices[i]}`;
+              }
+              
+              return next;
+            });
+
+            // [フェーズ3] 降りる
+            setTimeout(() => {
+              setStep(3);
+              setApples(prev => prev.map(a => ({ ...a, isMoving: false })));
+              
+              // [フェーズ4] 完全に降りたら答えを表示
+              setTimeout(() => {
+                setStep(4);
+              }, animTime);
+
+            }, waitTime); 
+          }, waitTime); 
+
+        } else if (step === 4) {
+          initGame(); 
+        }
+      };
+
+      const getButtonText = () => {
+        if (step === 0) return "りんごを うごかす ✨";
+        if (step === 4) return "つぎの もんだい ➡️";
+        return "うごかしているよ..."; 
+      };
+
+      return (
+        <div className="min-h-screen py-8 px-4 sm:px-8 flex flex-col items-center">
+          
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-700 mb-6 drop-shadow-sm flex items-center gap-2">
+            🍒 さくらんぼ計算アプリ 🍎
+          </h1>
+
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex flex-col items-center relative overflow-hidden border border-green-100">
+            
+            {/* 式とさくらんぼ表示エリア */}
+            <div className="flex justify-center items-center text-3xl sm:text-5xl font-bold text-gray-700 mb-8 w-full">
+              
+              {/* 左の数字 */}
+              <div className={`flex flex-col items-center transition-all duration-700 p-2 sm:p-4 rounded-2xl ${step >= 1 && num1 >= num2 ? 'bg-pink-50 ring-4 ring-pink-200' : 'bg-transparent'}`}>
+                {step === 0 ? (
+                  <SelectNumber 
+                    value={num1} 
+                    onChange={(e) => {
+                      setNum1(Number(e.target.value));
+                      setGameId(prev => prev + 1); // ★プルダウン変更時も一瞬で移動させる
+                    }} 
+                    colorClass="bg-orange-100" 
+                    textColorClass="text-orange-600" 
+                    ringClass="ring-orange-300"
+                  />
+                ) : (
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center bg-orange-100 rounded-2xl text-orange-600 shadow-sm">
+                    {num1}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-16 sm:h-20 flex items-center justify-center px-2 sm:px-4 text-gray-400">＋</div>
+              
+              {/* 右の数字 */}
+              <div className={`flex flex-col items-center relative p-2 sm:p-4 transition-all duration-700 rounded-2xl ${step >= 1 && num1 < num2 ? 'bg-pink-50 ring-4 ring-pink-200' : 'bg-transparent'}`}>
+                {step === 0 ? (
+                  <SelectNumber 
+                    value={num2} 
+                    onChange={(e) => {
+                      setNum2(Number(e.target.value));
+                      setGameId(prev => prev + 1); // ★プルダウン変更時も一瞬で移動させる
+                    }} 
+                    colorClass="bg-teal-100" 
+                    textColorClass="text-teal-600" 
+                    ringClass="ring-teal-300"
+                  />
+                ) : (
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center bg-teal-100 rounded-2xl text-teal-600 shadow-sm z-10">
+                    {num2}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-16 sm:h-20 flex items-center justify-center px-2 sm:px-4 text-gray-400">＝</div>
+              
+              {/* こたえ */}
+              <div className="flex flex-col items-center p-2 sm:p-4">
+                <div className="h-16 w-20 sm:h-20 sm:w-24 flex items-center justify-center rounded-2xl bg-gray-100 relative overflow-hidden shadow-inner">
+                  <span className={`absolute transition-opacity duration-300 ${step === 0 ? 'opacity-100 text-gray-400' : 'opacity-0'}`}>?</span>
+                  <span className={`absolute transition-opacity duration-1000 ${step >= 4 ? 'opacity-100 text-black' : 'opacity-0'}`}>{num1 + num2}</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* りんごを配置するコンテナ */}
+            <div id="apple-container" className="relative flex justify-center gap-4 sm:gap-8 w-full mb-8">
+              
+              {/* 左のマス */}
+              <GridBox 
+                idPrefix="left" 
+                isLeft={true}
+                isHighlight={step >= 1 && num1 >= num2} 
+              />
+              
+              {/* 右のマス */}
+              <GridBox 
+                idPrefix="right" 
+                isLeft={false}
+                isHighlight={step >= 1 && num1 < num2} 
+              />
+              
+              {/* りんご */}
+              {apples.map(apple => {
+                const pos = cellPositions[apple.cellId];
+                if (!pos) return null;
+                
+                const yOffset = apple.isMoving ? -60 : 0;
+                const scale = apple.isMoving ? 1.15 : 1;
+                
+                return (
+                  <div
+                    key={apple.id}
+                    className="absolute top-0 left-0"
+                    style={{
+                      width: pos.width,
+                      height: pos.height,
+                      transform: `translate3d(${pos.left}px, ${pos.top + yOffset}px, 0) scale(${scale})`,
+                      zIndex: apple.isTarget ? 50 : 10,
+                      transition: isInitialRender ? 'none' : 'transform 1.3s ease-in-out',
+                    }}
+                  >
+                    <Apple color={apple.color} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* コントロールボタン */}
+            <button
+              onClick={handleNextStep}
+              disabled={step > 0 && step < 4}
+              className={`mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform w-full max-w-sm
+                ${step === 0 ? 'bg-orange-400 hover:bg-orange-500 active:scale-95' : ''}
+                ${step > 0 && step < 4 ? 'bg-gray-400 cursor-not-allowed opacity-70' : ''}
+                ${step === 4 ? 'bg-green-500 hover:bg-green-600 active:scale-95' : ''}`}
+            >
+              {getButtonText()}
+            </button>
+
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

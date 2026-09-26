@@ -16,9 +16,10 @@
     .apple-moving-smooth {
       transition: transform 1.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    /* プルダウンのリストも大きく */
     select option {
-      font-size: 16px;
-      padding: 4px;
+      font-size: 24px;
+      padding: 8px;
       color: #333;
       background-color: #fff;
     }
@@ -34,124 +35,128 @@
 <body class="min-h-screen py-4 sm:py-8 px-2 sm:px-8 flex flex-col items-center select-none overflow-x-hidden">
 
   <!-- スタート画面 (モード選択) -->
-  <div id="start-screen" class="flex flex-col items-center justify-center w-full max-w-xl mt-10 sm:mt-20 bg-white rounded-3xl shadow-xl p-8 border border-green-100">
-    <h1 class="text-3xl sm:text-4xl font-bold text-green-700 mb-6 drop-shadow-sm flex flex-col items-center gap-4 text-center">
+  <div id="start-screen" class="flex flex-col items-center justify-center w-full max-w-3xl mt-10 sm:mt-20 bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-green-100">
+    <h1 class="text-4xl md:text-5xl font-bold text-green-700 mb-8 drop-shadow-sm flex flex-col items-center gap-4 text-center">
       <span>🍒 １けたのたしざん 🍎</span>
     </h1>
-    <p class="text-lg sm:text-xl text-gray-600 mb-8 font-bold">コースを えらんでね！</p>
+    <p class="text-xl md:text-2xl text-gray-600 mb-10 font-bold">コースを えらんでね！</p>
     
-    <div class="flex flex-col gap-6 w-full sm:w-80">
-      <button onclick="startGame('auto')" class="px-4 py-6 text-2xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-orange-400 hover:bg-orange-500 w-full flex flex-col items-center">
+    <div class="flex flex-col md:flex-row gap-6 w-full justify-center">
+      <button onclick="startGame('auto')" class="px-6 py-8 text-3xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-orange-400 hover:bg-orange-500 w-full md:w-80 flex flex-col items-center">
         <span>👀 みて まなぶ</span>
-        <span class="text-sm font-normal mt-1 opacity-90">じどうで うごくよ</span>
+        <span class="text-base font-normal mt-2 opacity-90">じどうで うごくよ</span>
       </button>
       
-      <button onclick="startGame('manual')" class="px-4 py-6 text-2xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-teal-500 hover:bg-teal-600 w-full flex flex-col items-center">
+      <button onclick="startGame('manual')" class="px-6 py-8 text-3xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-teal-500 hover:bg-teal-600 w-full md:w-80 flex flex-col items-center">
         <span>👆 さわって まなぶ</span>
-        <span class="text-sm font-normal mt-1 opacity-90">じぶんで うごかそう</span>
+        <span class="text-base font-normal mt-2 opacity-90">じぶんで うごかそう</span>
       </button>
     </div>
   </div>
 
   <!-- アプリ画面 (メイン) -->
-  <div id="app-screen" class="hide-screen w-full max-w-2xl flex-col items-center">
+  <div id="app-screen" class="hide-screen w-full max-w-6xl flex-col items-center">
     
     <!-- ヘッダー (戻るボタンとモード表示) -->
-    <div class="w-full flex justify-between items-center mb-4 px-2">
-      <button onclick="showStartScreen()" class="px-4 py-2 bg-white text-green-700 font-bold rounded-full shadow-sm hover:bg-green-50 transition border border-green-200">
+    <div class="w-full flex justify-between items-center mb-6 px-4">
+      <button onclick="showStartScreen()" class="px-6 py-3 md:text-xl bg-white text-green-700 font-bold rounded-full shadow-sm hover:bg-green-50 transition border border-green-200">
         ◀ もどる
       </button>
-      <div id="mode-badge" class="px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white">
+      <div id="mode-badge" class="px-6 py-2 text-base md:text-xl font-bold rounded-full shadow-sm text-white">
         <!-- モード名がJSで入る -->
       </div>
-      <div class="w-20"></div> <!-- スペーサー -->
+      <div class="w-24"></div> <!-- スペーサー -->
     </div>
 
-    <div class="w-full bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex flex-col items-center relative border border-green-100 touch-none-wrapper">
+    <div class="w-full bg-white rounded-3xl shadow-xl p-4 md:p-12 flex flex-col items-center relative border border-green-100 touch-none-wrapper">
       
       <!-- 手動モード時のヒントテキスト -->
-      <div id="manual-hint" class="hidden text-lg sm:text-xl font-bold text-teal-600 mb-6 animate-pulse text-center">
-        りんごを ゆびでうごかして、<br class="sm:hidden"/>10のまとまりを つくろう！
+      <div id="manual-hint" class="hidden text-xl md:text-3xl font-bold text-teal-600 mb-8 animate-pulse text-center">
+        りんごを ゆびでうごかして、<br class="md:hidden"/>10のまとまりを つくろう！
       </div>
 
       <!-- 式の表示エリア -->
-      <div id="equation-area" class="flex justify-center items-center text-3xl sm:text-5xl font-bold text-gray-700 mb-16 sm:mb-20 w-full relative">
+      <div id="equation-area" class="flex justify-center items-center text-4xl md:text-7xl font-bold text-gray-700 mb-24 md:mb-32 w-full relative">
         <svg id="ten-circle-svg" class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-700" style="z-index: 50; overflow: visible;"></svg>
 
         <!-- 左の数字 (プルダウン & さくらんぼUI) -->
-        <div id="left-box" class="flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl">
-          <div id="select-wrap-1" class="relative z-20 h-16 w-16 sm:h-20 sm:w-20 bg-orange-100 rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-orange-300 transition-all duration-500">
-            <span id="num1-text" class="text-3xl sm:text-5xl font-bold text-orange-600 pointer-events-none">8</span>
-            <div id="arrow-1" class="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center">
-              <svg class="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
+        <div id="left-box" class="flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl">
+          <div id="select-wrap-1" class="relative z-20 h-20 w-20 md:h-32 md:w-32 bg-orange-100 rounded-3xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-orange-300 transition-all duration-500">
+            <span id="num1-text" class="text-4xl md:text-7xl font-bold text-orange-600 transition-opacity duration-500 pointer-events-none">8</span>
+            <div id="arrow-1" class="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center">
+              <svg class="h-4 w-4 md:h-6 md:w-6 text-orange-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
               </svg>
             </div>
             <select id="select-num1" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base text-center"></select>
           </div>
           
-          <div id="sakuranbo-left" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-1 w-24 sm:w-28 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
-            <svg class="w-16 h-5 sm:w-20 sm:h-6 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+          <div id="sakuranbo-left" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-2 w-32 md:w-44 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
+            <svg class="w-20 h-6 md:w-32 md:h-10 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
               <path d="M 50 2 L 10 30 M 50 2 L 90 30" />
             </svg>
             <div class="flex justify-between w-full -mt-[2px]">
-              <span id="sakuranbo-l-remain" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
-              <span id="sakuranbo-l-move" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-l-remain" class="text-2xl md:text-4xl font-bold text-gray-700 bg-white rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-l-move" class="text-2xl md:text-4xl font-bold text-gray-700 bg-white rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
             </div>
           </div>
         </div>
 
-        <div class="h-16 sm:h-20 flex items-center justify-center px-1 sm:px-4 text-gray-400 z-20">＋</div>
+        <div class="h-20 md:h-32 flex items-center justify-center px-2 md:px-6 text-gray-400 z-20">＋</div>
         
         <!-- 右の数字 (プルダウン & さくらんぼUI) -->
-        <div id="right-box" class="flex flex-col items-center relative p-2 sm:p-4 transition-all duration-700 rounded-2xl">
-          <div id="select-wrap-2" class="relative z-20 h-16 w-16 sm:h-20 sm:w-20 bg-teal-100 rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-teal-300 transition-all duration-500">
-            <span id="num2-text" class="text-3xl sm:text-5xl font-bold text-teal-600 pointer-events-none">5</span>
-            <div id="arrow-2" class="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center">
-              <svg class="h-3 w-3 sm:h-4 sm:w-4 text-teal-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
+        <div id="right-box" class="flex flex-col items-center relative p-2 md:p-6 transition-all duration-700 rounded-3xl">
+          <div id="select-wrap-2" class="relative z-20 h-20 w-20 md:h-32 md:w-32 bg-teal-100 rounded-3xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-teal-300 transition-all duration-500">
+            <span id="num2-text" class="text-4xl md:text-7xl font-bold text-teal-600 transition-opacity duration-500 pointer-events-none">5</span>
+            <div id="arrow-2" class="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center">
+              <svg class="h-4 w-4 md:h-6 md:w-6 text-teal-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
               </svg>
             </div>
             <select id="select-num2" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base text-center"></select>
           </div>
 
-          <div id="sakuranbo-right" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-1 w-24 sm:w-28 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
-            <svg class="w-16 h-5 sm:w-20 sm:h-6 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+          <div id="sakuranbo-right" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-2 w-32 md:w-44 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
+            <svg class="w-20 h-6 md:w-32 md:h-10 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
               <path d="M 50 2 L 10 30 M 50 2 L 90 30" />
             </svg>
             <div class="flex justify-between w-full -mt-[2px]">
-              <span id="sakuranbo-r-move" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
-              <span id="sakuranbo-r-remain" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-r-move" class="text-2xl md:text-4xl font-bold text-gray-700 bg-white rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-r-remain" class="text-2xl md:text-4xl font-bold text-gray-700 bg-white rounded-full w-12 h-12 md:w-16 md:h-16 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
             </div>
           </div>
         </div>
 
-        <div class="h-16 sm:h-20 flex items-center justify-center px-1 sm:px-4 text-gray-400 z-20">＝</div>
+        <div class="h-20 md:h-32 flex items-center justify-center px-2 md:px-6 text-gray-400 z-20">＝</div>
         
         <!-- こたえ表示枠 -->
-        <div class="flex flex-col items-center p-2 sm:p-4 z-20">
-          <div class="h-16 w-16 sm:h-20 sm:w-24 flex items-center justify-center rounded-2xl bg-gray-100 relative overflow-hidden shadow-inner">
-            <span id="ans-question" class="absolute text-gray-400 text-3xl sm:text-5xl font-bold transition-opacity duration-300">?</span>
-            <span id="ans-text" class="absolute opacity-0 text-black text-3xl sm:text-5xl font-bold transition-opacity duration-1000">13</span>
+        <div class="flex flex-col items-center p-2 md:p-6 z-20">
+          <div class="h-20 w-24 md:h-32 md:w-40 flex items-center justify-center rounded-3xl bg-gray-100 relative overflow-hidden shadow-inner">
+            <span id="ans-question" class="absolute text-gray-400 text-4xl md:text-7xl font-bold transition-opacity duration-300">?</span>
+            <span id="ans-text" class="absolute opacity-0 text-black text-4xl md:text-7xl font-bold transition-opacity duration-1000">13</span>
           </div>
         </div>
 
       </div>
 
       <!-- リンゴコンテナ -->
-      <div id="apple-container" class="relative flex justify-center gap-2 sm:gap-8 w-full mb-4 sm:mb-8 min-h-[120px] sm:min-h-[150px]">
-        <div id="grid-left" class="grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow"></div>
-        <div id="grid-right" class="grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow"></div>
+      <div id="apple-container" class="relative flex justify-center gap-4 md:gap-12 w-full mb-1 md:mb-2 min-h-[160px] md:min-h-[250px]">
+        <div id="grid-left" class="grid grid-cols-5 bg-white border-4 border-dashed transition-all duration-700 rounded-xl border-gray-400 overflow-hidden w-[48%] max-w-[400px] h-min"></div>
+        <div id="grid-right" class="grid grid-cols-5 bg-white border-4 border-dashed transition-all duration-700 rounded-xl border-gray-400 overflow-hidden w-[48%] max-w-[400px] h-min"></div>
         <div id="apples-layer" class="absolute inset-0 pointer-events-none"></div>
       </div>
 
       <!-- 操作ボタン -->
-      <button id="action-btn" class="mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-orange-400 hover:bg-orange-500 cursor-pointer z-20">
+      <button id="action-btn" class="mt-1 md:mt-1.5 px-10 py-5 text-2xl md:text-3xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-lg bg-orange-400 hover:bg-orange-500 cursor-pointer z-20">
         りんごを うごかす ✨
       </button>
 
     </div>
   </div>
+
+  <footer class="mt-auto pt-8 pb-2 text-xs text-gray-400 text-center w-full">
+    &copy; 2026 Takuma Iwahara. Released under the MIT License.
+  </footer>
 
   <script>
     const RED_APPLE_SVG = `
@@ -198,6 +203,7 @@
     let startX = 0, startY = 0, initLeft = 0, initTop = 0;
     let lastCompletedSide = null;
 
+    // DOM Elements
     const startScreen = document.getElementById('start-screen');
     const appScreen = document.getElementById('app-screen');
     const modeBadge = document.getElementById('mode-badge');
@@ -236,13 +242,12 @@
       
       if (appMode === 'auto') {
         modeBadge.textContent = '👀 みて まなぶ';
-        modeBadge.className = 'px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white bg-orange-400';
+        modeBadge.className = 'px-6 py-2 text-base md:text-xl font-bold rounded-full shadow-sm text-white bg-orange-400';
       } else {
         modeBadge.textContent = '👆 さわって まなぶ';
-        modeBadge.className = 'px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white bg-teal-500';
+        modeBadge.className = 'px-6 py-2 text-base md:text-xl font-bold rounded-full shadow-sm text-white bg-teal-500';
       }
 
-      // Reset to a default problem on start
       num1 = 8;
       num2 = 5;
       step = 0;
@@ -250,7 +255,6 @@
       
       updateUI();
       
-      // 画面の表示切り替え（レイアウト計算）が完了してからリンゴを描画する
       setTimeout(() => {
         renderApplesInstantly();
       }, 50);
@@ -266,14 +270,18 @@
       gridLeft.innerHTML = '';
       gridRight.innerHTML = '';
       for (let i = 0; i < 10; i++) {
+        let baseClass = 'w-full aspect-square transition-colors duration-700 flex items-center justify-center border-dashed';
+        if (i % 5 !== 4) baseClass += ' border-r-2 border-gray-400';
+        if (i < 5) baseClass += ' border-b-2 border-gray-400';
+
         const cellL = document.createElement('div');
         cellL.id = `cell-left-${i}`;
-        cellL.className = 'w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl border-gray-200 border-dashed bg-gray-50';
+        cellL.className = baseClass;
         gridLeft.appendChild(cellL);
 
         const cellR = document.createElement('div');
         cellR.id = `cell-right-${i}`;
-        cellR.className = 'w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl border-gray-200 border-dashed bg-gray-50';
+        cellR.className = baseClass;
         gridRight.appendChild(cellR);
       }
     }
@@ -299,7 +307,6 @@
         if (isNum1) num1 = parseInt(e.target.value, 10);
         else num2 = parseInt(e.target.value, 10);
         
-        // Reset state on change
         step = 0;
         isMoving = false;
         updateUI();
@@ -330,20 +337,33 @@
       selectNum2.value = num2;
       ansText.textContent = num1 + num2;
 
-      if (step === 0) { // 問題スタート時（待機状態）
-        // 枠の透明化をリセット
+      if (step === 0) { 
         selectWrap1.classList.remove('opacity-40');
         selectWrap2.classList.remove('opacity-40');
+        num1Text.classList.remove('opacity-30');
+        num2Text.classList.remove('opacity-30');
 
         selectNum1.disabled = false;
         selectNum2.disabled = false;
         arrow1.style.display = 'flex';
         arrow2.style.display = 'flex';
         
-        leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-transparent';
-        rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-transparent';
-        gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow';
-        gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow';
+        leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-transparent';
+        rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-transparent';
+        gridLeft.className = 'grid grid-cols-5 bg-white border-4 border-dashed transition-all duration-700 rounded-xl border-gray-400 overflow-hidden w-[48%] max-w-[400px] h-min';
+        gridRight.className = 'grid grid-cols-5 bg-white border-4 border-dashed transition-all duration-700 rounded-xl border-gray-400 overflow-hidden w-[48%] max-w-[400px] h-min';
+
+        // ★ 2問目以降のために、マス目の中の点線も完全に初期状態へリセットする
+        Array.from(gridLeft.children).forEach((cell, i) => {
+          cell.className = 'w-full aspect-square transition-colors duration-700 flex items-center justify-center border-dashed';
+          if (i % 5 !== 4) cell.classList.add('border-r-2', 'border-gray-400');
+          if (i < 5) cell.classList.add('border-b-2', 'border-gray-400');
+        });
+        Array.from(gridRight.children).forEach((cell, i) => {
+          cell.className = 'w-full aspect-square transition-colors duration-700 flex items-center justify-center border-dashed';
+          if (i % 5 !== 4) cell.classList.add('border-r-2', 'border-gray-400');
+          if (i < 5) cell.classList.add('border-b-2', 'border-gray-400');
+        });
 
         ansQuestion.classList.remove('opacity-0');
         ansText.classList.add('opacity-0');
@@ -359,13 +379,13 @@
           actionBtn.style.display = 'block';
           actionBtn.disabled = false;
           actionBtn.textContent = 'りんごを うごかす ✨';
-          actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-orange-400 hover:bg-orange-500 cursor-pointer z-20';
+          actionBtn.className = 'mt-1 md:mt-1.5 px-10 py-5 text-2xl md:text-3xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-lg bg-orange-400 hover:bg-orange-500 cursor-pointer z-20';
         } else if (appMode === 'manual') {
           manualHint.classList.remove('hidden');
-          actionBtn.style.display = 'none';
+          actionBtn.style.display = 'none'; // 手動モード開始時は非表示
         }
 
-      } else if (step === 1) { // 自動モード：アニメーション中
+      } else if (step === 1) { 
         selectNum1.disabled = true;
         selectNum2.disabled = true;
         arrow1.style.display = 'none';
@@ -374,10 +394,10 @@
         if (appMode === 'auto') {
           actionBtn.disabled = true;
           actionBtn.textContent = 'うごかしているよ...';
-          actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg w-full max-w-sm bg-gray-400 cursor-not-allowed opacity-70 z-20';
+          actionBtn.className = 'mt-1 md:mt-1.5 px-10 py-5 text-2xl md:text-3xl font-bold rounded-full text-white shadow-lg w-full max-w-lg bg-gray-400 cursor-not-allowed opacity-70 z-20';
         }
 
-      } else if (step === 3) { // 手動モード：正解して演出中
+      } else if (step === 3) { 
         selectNum1.disabled = true;
         selectNum2.disabled = true;
         arrow1.style.display = 'none';
@@ -385,7 +405,7 @@
         manualHint.classList.add('hidden');
         actionBtn.style.display = 'none';
 
-      } else if (step === 4) { // 完全クリア時（答え表示後）
+      } else if (step === 4) { 
         selectNum1.disabled = true;
         selectNum2.disabled = true;
         arrow1.style.display = 'none';
@@ -395,10 +415,11 @@
         ansText.classList.remove('opacity-0');
         manualHint.classList.add('hidden');
 
+        // ★ クリア完了時に「つぎの もんだい」ボタンを確実に表示
         actionBtn.style.display = 'block';
         actionBtn.disabled = false;
         actionBtn.textContent = 'つぎの もんだい ➡️';
-        actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-green-500 hover:bg-green-600 cursor-pointer z-20';
+        actionBtn.className = 'mt-1 md:mt-1.5 px-10 py-5 text-2xl md:text-3xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-lg bg-green-500 hover:bg-green-600 cursor-pointer z-20';
       }
     }
 
@@ -406,14 +427,11 @@
       applesLayer.innerHTML = '';
       if (step === 0) {
         appleElements = [];
-        
         for (let i = 0; i < num1; i++) {
-          const cellId = `cell-left-${i}`;
-          createAppleDOM(cellId, 'red', i);
+          createAppleDOM(`cell-left-${i}`, 'red', i);
         }
         for (let i = 0; i < num2; i++) {
-          const cellId = `cell-right-${i}`;
-          createAppleDOM(cellId, 'blue', i);
+          createAppleDOM(`cell-right-${i}`, 'blue', i);
         }
       } else {
         appleElements.forEach(apple => {
@@ -451,7 +469,6 @@
         el.addEventListener('pointerdown', (e) => onPointerDown(e, appleObj));
         el.style.pointerEvents = 'auto';
       }
-
       appleElements.push(appleObj);
     }
 
@@ -472,14 +489,14 @@
       initLeft = pos.left;
       initTop = pos.top;
       
-      apple.el.style.transform = `translate3d(${initLeft}px, ${initTop - 15}px, 0) scale(1.15)`;
+      apple.el.style.transform = `translate3d(${initLeft}px, ${initTop - 25}px, 0) scale(1.15)`;
     }
 
     function onPointerMove(e) {
       if (!draggingApple) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      draggingApple.el.style.transform = `translate3d(${initLeft + dx}px, ${initTop - 15 + dy}px, 0) scale(1.15)`;
+      draggingApple.el.style.transform = `translate3d(${initLeft + dx}px, ${initTop - 25 + dy}px, 0) scale(1.15)`;
     }
 
     function onPointerUp(e) {
@@ -551,16 +568,25 @@
         
         if (total > 10) {
           if (completedSide === 'left') {
-            leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
-            gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+            leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-pink-50 ring-4 ring-pink-200';
+            gridLeft.className = 'grid grid-cols-5 bg-pink-100 border-4 border-solid border-pink-400 ring-4 ring-pink-200 shadow-inner w-[48%] max-w-[400px] h-min overflow-hidden transition-all duration-700';
+            Array.from(gridLeft.children).forEach(cell => {
+              cell.classList.remove('border-dashed', 'border-gray-400');
+              cell.classList.add('border-solid', 'border-pink-300');
+            });
           } else {
-            rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
-            gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+            rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-pink-50 ring-4 ring-pink-200';
+            gridRight.className = 'grid grid-cols-5 bg-pink-100 border-4 border-solid border-pink-400 ring-4 ring-pink-200 shadow-inner w-[48%] max-w-[400px] h-min overflow-hidden transition-all duration-700';
+            Array.from(gridRight.children).forEach(cell => {
+              cell.classList.remove('border-dashed', 'border-gray-400');
+              cell.classList.add('border-solid', 'border-pink-300');
+            });
           }
           
           setTimeout(() => {
             if (completedSide === 'left') {
               selectWrap2.classList.add('opacity-40');
+              num2Text.classList.add('opacity-30');
               const moved = 10 - num1;
               const remain = num2 - moved;
               sakuranboRMove.textContent = moved;
@@ -568,6 +594,7 @@
               sakuranboRight.classList.remove('opacity-0');
             } else {
               selectWrap1.classList.add('opacity-40');
+              num1Text.classList.add('opacity-30');
               const moved = 10 - num2;
               const remain = num1 - moved;
               sakuranboLRemain.textContent = remain;
@@ -605,27 +632,20 @@
       const maxMovable = moveLeftToRight ? num1 : num2;
       const completedSide = moveLeftToRight ? 'right' : 'left';
       lastCompletedSide = completedSide;
-
-      const moveCount = (num1 + num2 > 10) ? Math.min(10 - limit, maxMovable) : maxMovable;
+      const isOverTen = (num1 + num2) > 10;
+      const moveCount = isOverTen ? Math.min(10 - limit, maxMovable) : maxMovable;
       const remainCount = maxMovable - moveCount;
-      const targetIsLeft = num1 >= num2;
-      
-      if (targetIsLeft) {
-        leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
-        gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
-      } else {
-        rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
-        gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
-      }
 
-      if (num1 + num2 > 10) {
+      if (isOverTen) {
         if (moveLeftToRight) {
           selectWrap1.classList.add('opacity-40');
+          num1Text.classList.add('opacity-30');
           sakuranboLRemain.textContent = remainCount;
           sakuranboLMove.textContent = moveCount;
           sakuranboLeft.classList.remove('opacity-0');
         } else {
           selectWrap2.classList.add('opacity-40');
+          num2Text.classList.add('opacity-30');
           sakuranboRMove.textContent = moveCount;
           sakuranboRRemain.textContent = remainCount;
           sakuranboRight.classList.remove('opacity-0');
@@ -640,14 +660,12 @@
       for (let i = limit; i < limit + moveCount; i++) {
         targetIndices.push(i);
       }
-
       const sortByX = (idxA, idxB) => {
         const xA = idxA % 5;
         const xB = idxB % 5;
         if (xA !== xB) return xA - xB;
         return idxA - idxB;
       };
-
       movingApples.sort((a, b) => sortByX(a.originalIdx, b.originalIdx));
       targetIndices.sort(sortByX);
 
@@ -661,13 +679,13 @@
           item.el.classList.add('apple-moving-smooth');
           item.el.style.zIndex = '60';
           const curPos = getCellPosition(item.cellId);
-          item.el.style.transform = `translate3d(${curPos.left}px, ${curPos.top - 60}px, 0) scale(1.15)`;
+          item.el.style.transform = `translate3d(${curPos.left}px, ${curPos.top - 90}px, 0) scale(1.15)`;
         });
 
         setTimeout(() => {
           movingApples.forEach(item => {
             const destPos = getCellPosition(item.targetCellId);
-            item.el.style.transform = `translate3d(${destPos.left}px, ${destPos.top - 60}px, 0) scale(1.15)`;
+            item.el.style.transform = `translate3d(${destPos.left}px, ${destPos.top - 90}px, 0) scale(1.15)`;
           });
 
           setTimeout(() => {
@@ -677,20 +695,36 @@
             });
 
             setTimeout(() => {
-              if (num1 + num2 > 10) {
-                 drawTenCircle(completedSide);
+              if (isOverTen) {
+                 // ★ 移動完了後にマスをピンク色（完成状態）に変化させる
+                 if (completedSide === 'left') {
+                   leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-pink-50 ring-4 ring-pink-200';
+                   gridLeft.className = 'grid grid-cols-5 bg-pink-100 border-4 border-solid border-pink-400 ring-4 ring-pink-200 shadow-inner w-[48%] max-w-[400px] h-min overflow-hidden transition-all duration-700';
+                   Array.from(gridLeft.children).forEach(cell => {
+                     cell.classList.remove('border-dashed', 'border-gray-400');
+                     cell.classList.add('border-solid', 'border-pink-300');
+                   });
+                 } else {
+                   rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 md:p-6 rounded-3xl bg-pink-50 ring-4 ring-pink-200';
+                   gridRight.className = 'grid grid-cols-5 bg-pink-100 border-4 border-solid border-pink-400 ring-4 ring-pink-200 shadow-inner w-[48%] max-w-[400px] h-min overflow-hidden transition-all duration-700';
+                   Array.from(gridRight.children).forEach(cell => {
+                     cell.classList.remove('border-dashed', 'border-gray-400');
+                     cell.classList.add('border-solid', 'border-pink-300');
+                   });
+                 }
 
+                 drawTenCircle(completedSide);
                  setTimeout(() => {
                    step = 4;
                    isMoving = false;
-                   updateUI();
+                   updateUI(); // ここで「つぎの もんだい」ボタンが表示される
                  }, 1700);
               } else {
                  setTimeout(() => {
                    step = 4;
                    isMoving = false;
-                   updateUI();
-                 }, 700);
+                   updateUI(); // 10以下の場合もここで表示される
+                 }, 700 + 500); 
               }
             }, 1200); 
           }, 1200);
@@ -731,14 +765,14 @@
 
       const cx = (c1.x + c2.x) / 2;
       const cy = (c1.y + c2.y) / 2;
-
       const dx = c2.x - c1.x;
       const dy = c2.y - c1.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
       const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
 
-      const paddingX = 40; 
-      const paddingY = 45; 
+      // パディングを調整して、より細長い楕円にする
+      const paddingX = 80; 
+      const paddingY = 25; 
       const rx = (distance / 2) + paddingX;
       const ry = Math.max(rect1.height, rect2.height) / 2 + paddingY;
 
@@ -749,7 +783,7 @@
       ellipse.setAttribute("ry", ry);
       ellipse.setAttribute("fill", "transparent");
       ellipse.setAttribute("stroke", "#f472b6"); // pink-400
-      ellipse.setAttribute("stroke-width", "6");
+      ellipse.setAttribute("stroke-width", "8"); 
       ellipse.setAttribute("transform", `rotate(${angleDeg} ${cx} ${cy})`);
       
       svg.appendChild(ellipse);
@@ -797,8 +831,6 @@
     setupGrids();
     setupSelects();
     updateUI();
-    // ※アプリ画面非表示の状態でリンゴを描画するとサイズが0になるため、
-    // ここでの初期描画処理（requestAnimationFrame）は削除しました。
   </script>
 </body>
 </html>

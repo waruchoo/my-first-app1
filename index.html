@@ -3,415 +3,797 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>さくらんぼ計算アプリ</title>
-  
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  
-  <!-- Babel -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
-  <!-- Tailwind CSS -->
+  <title>１けたのたしざん</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     body {
-      background-color: #f0fdf4; /* bg-green-50相当 */
+      background-color: #f0fdf4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
-    @keyframes bounceIn {
-      0% { transform: scale(0.5); opacity: 0; }
-      60% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); }
+    .apple-moving-fast {
+      transition: none !important;
     }
-    .bounce-in {
-      animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .apple-moving-smooth {
+      transition: transform 1.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    select option {
+      font-size: 16px;
+      padding: 4px;
+      color: #333;
+      background-color: #fff;
+    }
+    /* ドラッグ時の画面スクロールを防止 */
+    .touch-none-wrapper {
+      touch-action: none;
+    }
+    .hide-screen {
+      display: none !important;
     }
   </style>
 </head>
-<body>
-  <div id="root"></div>
+<body class="min-h-screen py-4 sm:py-8 px-2 sm:px-8 flex flex-col items-center select-none overflow-x-hidden">
 
-  <script type="text/babel">
-    const { useState, useEffect, useCallback, useLayoutEffect } = React;
+  <!-- スタート画面 (モード選択) -->
+  <div id="start-screen" class="flex flex-col items-center justify-center w-full max-w-xl mt-10 sm:mt-20 bg-white rounded-3xl shadow-xl p-8 border border-green-100">
+    <h1 class="text-3xl sm:text-4xl font-bold text-green-700 mb-6 drop-shadow-sm flex flex-col items-center gap-4 text-center">
+      <span>🍒 １けたのたしざん 🍎</span>
+    </h1>
+    <p class="text-lg sm:text-xl text-gray-600 mb-8 font-bold">コースを えらんでね！</p>
+    
+    <div class="flex flex-col gap-6 w-full sm:w-80">
+      <button onclick="startGame('auto')" class="px-4 py-6 text-2xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-orange-400 hover:bg-orange-500 w-full flex flex-col items-center">
+        <span>👀 みて まなぶ</span>
+        <span class="text-sm font-normal mt-1 opacity-90">じどうで うごくよ</span>
+      </button>
+      
+      <button onclick="startGame('manual')" class="px-4 py-6 text-2xl font-bold rounded-2xl text-white shadow-lg transition-transform active:scale-95 bg-teal-500 hover:bg-teal-600 w-full flex flex-col items-center">
+        <span>👆 さわって まなぶ</span>
+        <span class="text-sm font-normal mt-1 opacity-90">じぶんで うごかそう</span>
+      </button>
+    </div>
+  </div>
 
-    // 朱色りんごのコンポーネント
-    const RedApple = () => (
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
-        <defs>
-          <radialGradient id="redGrad" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#ffb088" />
-            <stop offset="40%" stopColor="#f97316" />
-            <stop offset="100%" stopColor="#9a3412" />
-          </radialGradient>
-        </defs>
-        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
-        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#redGrad)" />
-        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
-        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
-      </svg>
-    );
-
-    // 青緑りんごのコンポーネント
-    const BlueApple = () => (
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
-        <defs>
-          <radialGradient id="blueGreenGrad" cx="30%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#5eead4" />
-            <stop offset="40%" stopColor="#14b8a6" />
-            <stop offset="100%" stopColor="#0f766e" />
-          </radialGradient>
-        </defs>
-        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
-        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#blueGreenGrad)" />
-        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
-        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
-      </svg>
-    );
-
-    const Apple = ({ color }) => {
-      return color === 'red' ? <RedApple /> : <BlueApple />;
-    };
-
-    // 数字を選ぶプルダウンコンポーネント
-    const SelectNumber = ({ value, onChange, colorClass, textColorClass, ringClass }) => (
-      <div className={`relative z-10 h-16 w-16 sm:h-20 sm:w-20 ${colorClass} rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 ${ringClass}`}>
-        {/* 見た目の大きな数字 */}
-        <span className={`text-3xl sm:text-5xl font-bold ${textColorClass} pointer-events-none`}>{value}</span>
-        
-        {/* 矢印アイコン */}
-        <div className="pointer-events-none absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center">
-          <svg className={`h-3 w-3 sm:h-4 sm:w-4 ${textColorClass} opacity-60`} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
-          </svg>
-        </div>
-
-        {/* 透明なセレクトボックス（タップ判定とリスト表示用） */}
-        <select 
-          value={value}
-          onChange={onChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-lg"
-        >
-          {[1,2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
+  <!-- アプリ画面 (メイン) -->
+  <div id="app-screen" class="hide-screen w-full max-w-2xl flex-col items-center">
+    
+    <!-- ヘッダー (戻るボタンとモード表示) -->
+    <div class="w-full flex justify-between items-center mb-4 px-2">
+      <button onclick="showStartScreen()" class="px-4 py-2 bg-white text-green-700 font-bold rounded-full shadow-sm hover:bg-green-50 transition border border-green-200">
+        ◀ もどる
+      </button>
+      <div id="mode-badge" class="px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white">
+        <!-- モード名がJSで入る -->
       </div>
-    );
+      <div class="w-20"></div> <!-- スペーサー -->
+    </div>
 
-    const GridBox = ({ idPrefix, isHighlight, isLeft }) => {
-      return (
-        <div className={`grid grid-cols-5 gap-1 sm:gap-2 p-2 sm:p-3 rounded-2xl transition-all duration-700 
-          ${isHighlight ? 'bg-pink-100 ring-4 ring-pink-300 shadow-inner' : 'bg-white shadow'}`}>
-          {Array.from({length: 10}).map((_, i) => {
-            return (
-              <div key={i} id={`cell-${idPrefix}-${i}`} 
-                className={`w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl transition-all duration-500 border-gray-200 border-dashed bg-gray-50`}>
-              </div>
-            )
-          })}
-        </div>
-      );
-    };
-
-    function App() {
-      const [num1, setNum1] = useState(8);
-      const [num2, setNum2] = useState(5);
+    <div class="w-full bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex flex-col items-center relative border border-green-100 touch-none-wrapper">
       
-      const [step, setStep] = useState(0);
-      const [gameId, setGameId] = useState(0); // ★ゲームの回数を管理してリンゴのIDをリセットする
-      
-      const [apples, setApples] = useState([]);
-      const [cellPositions, setCellPositions] = useState({});
-      const [isInitialRender, setIsInitialRender] = useState(true);
+      <!-- 手動モード時のヒントテキスト -->
+      <div id="manual-hint" class="hidden text-lg sm:text-xl font-bold text-teal-600 mb-6 animate-pulse text-center">
+        りんごを ゆびでうごかして、<br class="sm:hidden"/>10のまとまりを つくろう！
+      </div>
 
-      const initGame = useCallback(() => {
-        const n1 = Math.floor(Math.random() * 8) + 2; 
-        const minN2 = Math.max(2, 11 - n1);
-        const maxN2 = 9;
-        const n2 = Math.floor(Math.random() * (maxN2 - minN2 + 1)) + minN2;
-        
-        setNum1(n1);
-        setNum2(n2);
-        setStep(0);
-        setGameId(prev => prev + 1); // ★問題が変わるたびにIDを進める
-      }, []);
+      <!-- 式の表示エリア -->
+      <div id="equation-area" class="flex justify-center items-center text-3xl sm:text-5xl font-bold text-gray-700 mb-16 sm:mb-20 w-full relative">
+        <svg id="ten-circle-svg" class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-700" style="z-index: 50; overflow: visible;"></svg>
 
-      useEffect(() => {
-        setIsInitialRender(true);
-        
-        const newApples = [];
-        for (let i = 0; i < num1; i++) {
-          // ★ gameId を含めることで毎回「完全に新しいリンゴ」として配置させる
-          newApples.push({ id: `red-${gameId}-${i}`, color: 'red', cellId: `cell-left-${i}`, isMoving: false, isTarget: false });
-        }
-        for (let i = 0; i < num2; i++) {
-          newApples.push({ id: `blue-${gameId}-${i}`, color: 'blue', cellId: `cell-right-${i}`, isMoving: false, isTarget: false });
-        }
-        setApples(newApples);
-        
-        // ★少し余裕をもたせてからアニメーションのロックを解除(50ms -> 100ms)
-        const timer = setTimeout(() => setIsInitialRender(false), 100);
-        return () => clearTimeout(timer);
-      }, [num1, num2, gameId]);
-
-      const updatePositions = useCallback(() => {
-        const container = document.getElementById('apple-container');
-        if (!container) return;
-        const containerRect = container.getBoundingClientRect();
-
-        const newCellPositions = {};
-        ['left', 'right'].forEach(side => {
-          for (let i = 0; i < 10; i++) {
-            const cellId = `cell-${side}-${i}`;
-            const cell = document.getElementById(cellId);
-            if (cell) {
-              const rect = cell.getBoundingClientRect();
-              newCellPositions[cellId] = {
-                top: rect.top - containerRect.top,
-                left: rect.left - containerRect.left,
-                width: rect.width,
-                height: rect.height,
-              };
-            }
-          }
-        });
-        setCellPositions(newCellPositions);
-      }, []);
-
-      useLayoutEffect(() => {
-        updatePositions();
-        window.addEventListener('resize', updatePositions);
-        return () => {
-          window.removeEventListener('resize', updatePositions);
-        };
-      }, [updatePositions]);
-
-      const handleNextStep = () => {
-        if (step === 0) {
-          const moveLeftToRight = num1 < num2; 
-          const movingColor = moveLeftToRight ? 'red' : 'blue';
-          const targetCellPrefix = moveLeftToRight ? 'cell-right' : 'cell-left';
-          const limit = moveLeftToRight ? num2 : num1;
-          const maxMovable = moveLeftToRight ? num1 : num2;
-          
-          const moveCount = Math.min(10 - limit, maxMovable); 
-          
-          const animTime = 1300; 
-          const waitTime = 1200; 
-          
-          // [フェーズ1] 浮き上がる
-          setStep(1);
-          setApples(prev => {
-            const next = prev.map(a => ({ ...a }));
-            let assignedCount = 0;
-            // 対象となるリンゴを下段・右側から選出
-            for (let i = next.length - 1; i >= 0; i--) {
-              const apple = next[i];
-              if (apple.color === movingColor && assignedCount < moveCount) {
-                apple.isMoving = true; 
-                apple.isTarget = true;
-                assignedCount++;
-              } else {
-                apple.isMoving = false;
-                apple.isTarget = false;
-              }
-            }
-            return next;
-          });
-
-          // [フェーズ2] 水平移動
-          setTimeout(() => {
-            setStep(2);
-            setApples(prev => {
-              const next = prev.map(a => ({ ...a }));
-              
-              // 移動するリンゴの要素と元のマスインデックスを取得
-              const movingItems = next
-                .filter(a => a.isMoving)
-                .map(a => {
-                  const idx = parseInt(a.cellId.split('-').pop());
-                  return { apple: a, idx };
-                });
-              
-              // 移動先の空きマスのインデックスリストを作成
-              const emptyIndices = [];
-              for (let i = limit; i < limit + moveCount; i++) {
-                emptyIndices.push(i);
-              }
-              
-              // ★軌道が交差しないための最重要ロジック★
-              // 見た目のX座標 (インデックス % 5) の小さい順（左から右へ）ソートする
-              const sortByX = (a, b) => {
-                const xA = a % 5;
-                const xB = b % 5;
-                if (xA !== xB) return xA - xB; // X座標が違えば左を優先
-                return a - b; // X座標が同じなら上段を優先
-              };
-              
-              movingItems.sort((a, b) => sortByX(a.idx, b.idx));
-              emptyIndices.sort(sortByX);
-              
-              // ソートした順番で1対1で割り当てることで、左のものは左へ、右のものは右へ平行移動する
-              for (let i = 0; i < movingItems.length; i++) {
-                movingItems[i].apple.cellId = `${targetCellPrefix}-${emptyIndices[i]}`;
-              }
-              
-              return next;
-            });
-
-            // [フェーズ3] 降りる
-            setTimeout(() => {
-              setStep(3);
-              setApples(prev => prev.map(a => ({ ...a, isMoving: false })));
-              
-              // [フェーズ4] 完全に降りたら答えを表示
-              setTimeout(() => {
-                setStep(4);
-              }, animTime);
-
-            }, waitTime); 
-          }, waitTime); 
-
-        } else if (step === 4) {
-          initGame(); 
-        }
-      };
-
-      const getButtonText = () => {
-        if (step === 0) return "りんごを うごかす ✨";
-        if (step === 4) return "つぎの もんだい ➡️";
-        return "うごかしているよ..."; 
-      };
-
-      return (
-        <div className="min-h-screen py-8 px-4 sm:px-8 flex flex-col items-center">
-          
-          <h1 className="text-2xl sm:text-3xl font-bold text-green-700 mb-6 drop-shadow-sm flex items-center gap-2">
-            🍒 さくらんぼ計算アプリ 🍎
-          </h1>
-
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-4 sm:p-8 flex flex-col items-center relative overflow-hidden border border-green-100">
-            
-            {/* 式とさくらんぼ表示エリア */}
-            <div className="flex justify-center items-center text-3xl sm:text-5xl font-bold text-gray-700 mb-8 w-full">
-              
-              {/* 左の数字 */}
-              <div className={`flex flex-col items-center transition-all duration-700 p-2 sm:p-4 rounded-2xl ${step >= 1 && num1 >= num2 ? 'bg-pink-50 ring-4 ring-pink-200' : 'bg-transparent'}`}>
-                {step === 0 ? (
-                  <SelectNumber 
-                    value={num1} 
-                    onChange={(e) => {
-                      setNum1(Number(e.target.value));
-                      setGameId(prev => prev + 1); // ★プルダウン変更時も一瞬で移動させる
-                    }} 
-                    colorClass="bg-orange-100" 
-                    textColorClass="text-orange-600" 
-                    ringClass="ring-orange-300"
-                  />
-                ) : (
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center bg-orange-100 rounded-2xl text-orange-600 shadow-sm">
-                    {num1}
-                  </div>
-                )}
-              </div>
-
-              <div className="h-16 sm:h-20 flex items-center justify-center px-2 sm:px-4 text-gray-400">＋</div>
-              
-              {/* 右の数字 */}
-              <div className={`flex flex-col items-center relative p-2 sm:p-4 transition-all duration-700 rounded-2xl ${step >= 1 && num1 < num2 ? 'bg-pink-50 ring-4 ring-pink-200' : 'bg-transparent'}`}>
-                {step === 0 ? (
-                  <SelectNumber 
-                    value={num2} 
-                    onChange={(e) => {
-                      setNum2(Number(e.target.value));
-                      setGameId(prev => prev + 1); // ★プルダウン変更時も一瞬で移動させる
-                    }} 
-                    colorClass="bg-teal-100" 
-                    textColorClass="text-teal-600" 
-                    ringClass="ring-teal-300"
-                  />
-                ) : (
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center bg-teal-100 rounded-2xl text-teal-600 shadow-sm z-10">
-                    {num2}
-                  </div>
-                )}
-              </div>
-
-              <div className="h-16 sm:h-20 flex items-center justify-center px-2 sm:px-4 text-gray-400">＝</div>
-              
-              {/* こたえ */}
-              <div className="flex flex-col items-center p-2 sm:p-4">
-                <div className="h-16 w-20 sm:h-20 sm:w-24 flex items-center justify-center rounded-2xl bg-gray-100 relative overflow-hidden shadow-inner">
-                  <span className={`absolute transition-opacity duration-300 ${step === 0 ? 'opacity-100 text-gray-400' : 'opacity-0'}`}>?</span>
-                  <span className={`absolute transition-opacity duration-1000 ${step >= 4 ? 'opacity-100 text-black' : 'opacity-0'}`}>{num1 + num2}</span>
-                </div>
-              </div>
-
+        <!-- 左の数字 (プルダウン & さくらんぼUI) -->
+        <div id="left-box" class="flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl">
+          <div id="select-wrap-1" class="relative z-20 h-16 w-16 sm:h-20 sm:w-20 bg-orange-100 rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-orange-300 transition-all duration-500">
+            <span id="num1-text" class="text-3xl sm:text-5xl font-bold text-orange-600 pointer-events-none">8</span>
+            <div id="arrow-1" class="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center">
+              <svg class="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
             </div>
-
-            {/* りんごを配置するコンテナ */}
-            <div id="apple-container" className="relative flex justify-center gap-4 sm:gap-8 w-full mb-8">
-              
-              {/* 左のマス */}
-              <GridBox 
-                idPrefix="left" 
-                isLeft={true}
-                isHighlight={step >= 1 && num1 >= num2} 
-              />
-              
-              {/* 右のマス */}
-              <GridBox 
-                idPrefix="right" 
-                isLeft={false}
-                isHighlight={step >= 1 && num1 < num2} 
-              />
-              
-              {/* りんご */}
-              {apples.map(apple => {
-                const pos = cellPositions[apple.cellId];
-                if (!pos) return null;
-                
-                const yOffset = apple.isMoving ? -60 : 0;
-                const scale = apple.isMoving ? 1.15 : 1;
-                
-                return (
-                  <div
-                    key={apple.id}
-                    className="absolute top-0 left-0"
-                    style={{
-                      width: pos.width,
-                      height: pos.height,
-                      transform: `translate3d(${pos.left}px, ${pos.top + yOffset}px, 0) scale(${scale})`,
-                      zIndex: apple.isTarget ? 50 : 10,
-                      transition: isInitialRender ? 'none' : 'transform 1.3s ease-in-out',
-                    }}
-                  >
-                    <Apple color={apple.color} />
-                  </div>
-                );
-              })}
+            <select id="select-num1" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base text-center"></select>
+          </div>
+          
+          <div id="sakuranbo-left" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-1 w-24 sm:w-28 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
+            <svg class="w-16 h-5 sm:w-20 sm:h-6 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+              <path d="M 50 2 L 10 30 M 50 2 L 90 30" />
+            </svg>
+            <div class="flex justify-between w-full -mt-[2px]">
+              <span id="sakuranbo-l-remain" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-l-move" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
             </div>
-
-            {/* コントロールボタン */}
-            <button
-              onClick={handleNextStep}
-              disabled={step > 0 && step < 4}
-              className={`mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform w-full max-w-sm
-                ${step === 0 ? 'bg-orange-400 hover:bg-orange-500 active:scale-95' : ''}
-                ${step > 0 && step < 4 ? 'bg-gray-400 cursor-not-allowed opacity-70' : ''}
-                ${step === 4 ? 'bg-green-500 hover:bg-green-600 active:scale-95' : ''}`}
-            >
-              {getButtonText()}
-            </button>
-
           </div>
         </div>
-      );
+
+        <div class="h-16 sm:h-20 flex items-center justify-center px-1 sm:px-4 text-gray-400 z-20">＋</div>
+        
+        <!-- 右の数字 (プルダウン & さくらんぼUI) -->
+        <div id="right-box" class="flex flex-col items-center relative p-2 sm:p-4 transition-all duration-700 rounded-2xl">
+          <div id="select-wrap-2" class="relative z-20 h-16 w-16 sm:h-20 sm:w-20 bg-teal-100 rounded-2xl shadow-sm flex items-center justify-center focus-within:ring-4 focus-within:ring-teal-300 transition-all duration-500">
+            <span id="num2-text" class="text-3xl sm:text-5xl font-bold text-teal-600 pointer-events-none">5</span>
+            <div id="arrow-2" class="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center">
+              <svg class="h-3 w-3 sm:h-4 sm:w-4 text-teal-600 opacity-60" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <select id="select-num2" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base text-center"></select>
+          </div>
+
+          <div id="sakuranbo-right" class="absolute top-[90%] left-1/2 -translate-x-1/2 mt-1 w-24 sm:w-28 opacity-0 transition-opacity duration-500 pointer-events-none flex flex-col items-center z-10">
+            <svg class="w-16 h-5 sm:w-20 sm:h-6 text-gray-800" viewBox="0 0 100 30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+              <path d="M 50 2 L 10 30 M 50 2 L 90 30" />
+            </svg>
+            <div class="flex justify-between w-full -mt-[2px]">
+              <span id="sakuranbo-r-move" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+              <span id="sakuranbo-r-remain" class="text-xl sm:text-2xl font-bold text-gray-700 bg-white rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-[2.5px] border-gray-800 shadow-sm z-10 leading-none pt-[2px]"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-16 sm:h-20 flex items-center justify-center px-1 sm:px-4 text-gray-400 z-20">＝</div>
+        
+        <!-- こたえ表示枠 -->
+        <div class="flex flex-col items-center p-2 sm:p-4 z-20">
+          <div class="h-16 w-16 sm:h-20 sm:w-24 flex items-center justify-center rounded-2xl bg-gray-100 relative overflow-hidden shadow-inner">
+            <span id="ans-question" class="absolute text-gray-400 text-3xl sm:text-5xl font-bold transition-opacity duration-300">?</span>
+            <span id="ans-text" class="absolute opacity-0 text-black text-3xl sm:text-5xl font-bold transition-opacity duration-1000">13</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- リンゴコンテナ -->
+      <div id="apple-container" class="relative flex justify-center gap-2 sm:gap-8 w-full mb-4 sm:mb-8 min-h-[120px] sm:min-h-[150px]">
+        <div id="grid-left" class="grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow"></div>
+        <div id="grid-right" class="grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow"></div>
+        <div id="apples-layer" class="absolute inset-0 pointer-events-none"></div>
+      </div>
+
+      <!-- 操作ボタン -->
+      <button id="action-btn" class="mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-orange-400 hover:bg-orange-500 cursor-pointer z-20">
+        りんごを うごかす ✨
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const RED_APPLE_SVG = `
+      <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+        <defs>
+          <radialGradient id="redGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffb088" />
+            <stop offset="40%" stop-color="#f97316" />
+            <stop offset="100%" stop-color="#9a3412" />
+          </radialGradient>
+        </defs>
+        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" stroke-width="4" stroke-linecap="round" />
+        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
+        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#redGrad)" />
+        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.3" />
+        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
+      </svg>
+    `;
+
+    const BLUE_APPLE_SVG = `
+      <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+        <defs>
+          <radialGradient id="blueGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#5eead4" />
+            <stop offset="40%" stop-color="#14b8a6" />
+            <stop offset="100%" stop-color="#0f766e" />
+          </radialGradient>
+        </defs>
+        <path d="M 50 28 Q 55 10 60 8" fill="none" stroke="#78350f" stroke-width="4" stroke-linecap="round" />
+        <path d="M 53 24 C 60 10, 85 15, 80 30 C 75 45, 60 30, 53 24 Z" fill="#4ade80" />
+        <path d="M 50 28 C 35 10, 5 20, 10 50 C 15 85, 35 95, 50 85 C 65 95, 85 85, 90 50 C 95 20, 65 10, 50 28 Z" fill="url(#blueGrad)" />
+        <path d="M 18 45 C 16 60, 25 75, 35 80" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.3" />
+        <ellipse cx="28" cy="32" rx="7" ry="3" transform="rotate(-40 28 32)" fill="white" opacity="0.6" />
+      </svg>
+    `;
+
+    let appMode = 'auto'; // 'auto' or 'manual'
+    let num1 = 8;
+    let num2 = 5;
+    let step = 0; 
+    let isMoving = false;
+    let appleElements = [];
+    let draggingApple = null;
+    let startX = 0, startY = 0, initLeft = 0, initTop = 0;
+    let lastCompletedSide = null;
+
+    const startScreen = document.getElementById('start-screen');
+    const appScreen = document.getElementById('app-screen');
+    const modeBadge = document.getElementById('mode-badge');
+    const manualHint = document.getElementById('manual-hint');
+
+    const gridLeft = document.getElementById('grid-left');
+    const gridRight = document.getElementById('grid-right');
+    const applesLayer = document.getElementById('apples-layer');
+    const selectWrap1 = document.getElementById('select-wrap-1');
+    const selectWrap2 = document.getElementById('select-wrap-2');
+    const selectNum1 = document.getElementById('select-num1');
+    const selectNum2 = document.getElementById('select-num2');
+    const num1Text = document.getElementById('num1-text');
+    const num2Text = document.getElementById('num2-text');
+    const arrow1 = document.getElementById('arrow-1');
+    const arrow2 = document.getElementById('arrow-2');
+    const leftBox = document.getElementById('left-box');
+    const rightBox = document.getElementById('right-box');
+    const ansQuestion = document.getElementById('ans-question');
+    const ansText = document.getElementById('ans-text');
+    const actionBtn = document.getElementById('action-btn');
+    const appleContainer = document.getElementById('apple-container');
+
+    const sakuranboLeft = document.getElementById('sakuranbo-left');
+    const sakuranboRight = document.getElementById('sakuranbo-right');
+    const sakuranboLRemain = document.getElementById('sakuranbo-l-remain');
+    const sakuranboLMove = document.getElementById('sakuranbo-l-move');
+    const sakuranboRMove = document.getElementById('sakuranbo-r-move');
+    const sakuranboRRemain = document.getElementById('sakuranbo-r-remain');
+
+    function startGame(mode) {
+      appMode = mode;
+      startScreen.classList.add('hide-screen');
+      appScreen.classList.remove('hide-screen');
+      appScreen.classList.add('flex');
+      
+      if (appMode === 'auto') {
+        modeBadge.textContent = '👀 みて まなぶ';
+        modeBadge.className = 'px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white bg-orange-400';
+      } else {
+        modeBadge.textContent = '👆 さわって まなぶ';
+        modeBadge.className = 'px-4 py-1.5 text-sm sm:text-base font-bold rounded-full shadow-sm text-white bg-teal-500';
+      }
+
+      // Reset to a default problem on start
+      num1 = 8;
+      num2 = 5;
+      step = 0;
+      isMoving = false;
+      
+      updateUI();
+      renderApplesInstantly();
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    function showStartScreen() {
+      appScreen.classList.add('hide-screen');
+      appScreen.classList.remove('flex');
+      startScreen.classList.remove('hide-screen');
+    }
+
+    function setupGrids() {
+      gridLeft.innerHTML = '';
+      gridRight.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const cellL = document.createElement('div');
+        cellL.id = `cell-left-${i}`;
+        cellL.className = 'w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl border-gray-200 border-dashed bg-gray-50';
+        gridLeft.appendChild(cellL);
+
+        const cellR = document.createElement('div');
+        cellR.id = `cell-right-${i}`;
+        cellR.className = 'w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 border-2 rounded-xl border-gray-200 border-dashed bg-gray-50';
+        gridRight.appendChild(cellR);
+      }
+    }
+
+    function setupSelects() {
+      selectNum1.innerHTML = '';
+      selectNum2.innerHTML = '';
+      for (let i = 1; i <= 9; i++) {
+        const opt1 = document.createElement('option');
+        opt1.value = i;
+        opt1.textContent = i;
+        selectNum1.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = i;
+        opt2.textContent = i;
+        selectNum2.appendChild(opt2);
+      }
+      selectNum1.value = num1;
+      selectNum2.value = num2;
+
+      const handleChange = (e, isNum1) => {
+        if (isNum1) num1 = parseInt(e.target.value, 10);
+        else num2 = parseInt(e.target.value, 10);
+        
+        // Reset state on change
+        step = 0;
+        isMoving = false;
+        updateUI();
+        renderApplesInstantly();
+      };
+
+      selectNum1.addEventListener('change', (e) => handleChange(e, true));
+      selectNum2.addEventListener('change', (e) => handleChange(e, false));
+    }
+
+    function getCellPosition(cellId) {
+      const cell = document.getElementById(cellId);
+      if (!cell || !appleContainer) return { left: 0, top: 0, width: 48, height: 48 };
+      const contRect = appleContainer.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+      return {
+        left: cellRect.left - contRect.left,
+        top: cellRect.top - contRect.top,
+        width: cellRect.width,
+        height: cellRect.height
+      };
+    }
+
+    function updateUI() {
+      num1Text.textContent = num1;
+      num2Text.textContent = num2;
+      selectNum1.value = num1;
+      selectNum2.value = num2;
+      ansText.textContent = num1 + num2;
+
+      if (step === 0) { // 問題スタート時（待機状態）
+        // 枠の透明化をリセット
+        selectWrap1.classList.remove('opacity-40');
+        selectWrap2.classList.remove('opacity-40');
+
+        selectNum1.disabled = false;
+        selectNum2.disabled = false;
+        arrow1.style.display = 'flex';
+        arrow2.style.display = 'flex';
+        
+        leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-transparent';
+        rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-transparent';
+        gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow';
+        gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-white shadow';
+
+        ansQuestion.classList.remove('opacity-0');
+        ansText.classList.add('opacity-0');
+        sakuranboLeft.classList.add('opacity-0');
+        sakuranboRight.classList.add('opacity-0');
+
+        const tenSvg = document.getElementById('ten-circle-svg');
+        if (tenSvg) tenSvg.classList.add('opacity-0');
+        lastCompletedSide = null;
+
+        if (appMode === 'auto') {
+          manualHint.classList.add('hidden');
+          actionBtn.style.display = 'block';
+          actionBtn.disabled = false;
+          actionBtn.textContent = 'りんごを うごかす ✨';
+          actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-orange-400 hover:bg-orange-500 cursor-pointer z-20';
+        } else if (appMode === 'manual') {
+          manualHint.classList.remove('hidden');
+          actionBtn.style.display = 'none';
+        }
+
+      } else if (step === 1) { // 自動モード：アニメーション中
+        selectNum1.disabled = true;
+        selectNum2.disabled = true;
+        arrow1.style.display = 'none';
+        arrow2.style.display = 'none';
+        
+        if (appMode === 'auto') {
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'うごかしているよ...';
+          actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg w-full max-w-sm bg-gray-400 cursor-not-allowed opacity-70 z-20';
+        }
+
+      } else if (step === 3) { // 手動モード：正解して演出中
+        selectNum1.disabled = true;
+        selectNum2.disabled = true;
+        arrow1.style.display = 'none';
+        arrow2.style.display = 'none';
+        manualHint.classList.add('hidden');
+        actionBtn.style.display = 'none';
+
+      } else if (step === 4) { // 完全クリア時（答え表示後）
+        selectNum1.disabled = true;
+        selectNum2.disabled = true;
+        arrow1.style.display = 'none';
+        arrow2.style.display = 'none';
+
+        ansQuestion.classList.add('opacity-0');
+        ansText.classList.remove('opacity-0');
+        manualHint.classList.add('hidden');
+
+        actionBtn.style.display = 'block';
+        actionBtn.disabled = false;
+        actionBtn.textContent = 'つぎの もんだい ➡️';
+        actionBtn.className = 'mt-4 px-8 py-4 text-xl sm:text-2xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-full max-w-sm bg-green-500 hover:bg-green-600 cursor-pointer z-20';
+      }
+    }
+
+    function renderApplesInstantly() {
+      applesLayer.innerHTML = '';
+      if (step === 0) {
+        appleElements = [];
+        
+        for (let i = 0; i < num1; i++) {
+          const cellId = `cell-left-${i}`;
+          createAppleDOM(cellId, 'red', i);
+        }
+        for (let i = 0; i < num2; i++) {
+          const cellId = `cell-right-${i}`;
+          createAppleDOM(cellId, 'blue', i);
+        }
+      } else {
+        appleElements.forEach(apple => {
+          applesLayer.appendChild(apple.el);
+          const pos = getCellPosition(apple.cellId);
+          apple.el.style.width = `${pos.width}px`;
+          apple.el.style.height = `${pos.height}px`;
+          apple.el.style.transform = `translate3d(${pos.left}px, ${pos.top}px, 0)`;
+        });
+      }
+    }
+
+    function createAppleDOM(cellId, color, originalIdx) {
+      const pos = getCellPosition(cellId);
+      const el = document.createElement('div');
+      el.className = 'absolute top-0 left-0 apple-moving-fast';
+      el.style.width = `${pos.width}px`;
+      el.style.height = `${pos.height}px`;
+      el.style.transform = `translate3d(${pos.left}px, ${pos.top}px, 0)`;
+      el.style.zIndex = '10';
+      el.innerHTML = color === 'red' ? RED_APPLE_SVG : BLUE_APPLE_SVG;
+      applesLayer.appendChild(el);
+
+      const appleObj = { 
+        color: color, 
+        originalIdx: originalIdx, 
+        originalSide: cellId.includes('left') ? 'left' : 'right',
+        cellId: cellId, 
+        el: el 
+      };
+
+      if (appMode === 'manual') {
+        el.style.cursor = 'grab';
+        el.style.touchAction = 'none'; 
+        el.addEventListener('pointerdown', (e) => onPointerDown(e, appleObj));
+        el.style.pointerEvents = 'auto';
+      }
+
+      appleElements.push(appleObj);
+    }
+
+    function onPointerDown(e, apple) {
+      if (appMode !== 'manual' || step !== 0) return;
+      e.preventDefault();
+      draggingApple = apple;
+      
+      apple.el.setPointerCapture(e.pointerId);
+      apple.el.style.cursor = 'grabbing';
+      apple.el.style.zIndex = '100';
+      apple.el.classList.remove('apple-moving-fast', 'apple-moving-smooth');
+
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const pos = getCellPosition(apple.cellId);
+      initLeft = pos.left;
+      initTop = pos.top;
+      
+      apple.el.style.transform = `translate3d(${initLeft}px, ${initTop - 15}px, 0) scale(1.15)`;
+    }
+
+    function onPointerMove(e) {
+      if (!draggingApple) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      draggingApple.el.style.transform = `translate3d(${initLeft + dx}px, ${initTop - 15 + dy}px, 0) scale(1.15)`;
+    }
+
+    function onPointerUp(e) {
+      if (!draggingApple) return;
+      draggingApple.el.releasePointerCapture(e.pointerId);
+      draggingApple.el.style.cursor = 'grab';
+      draggingApple.el.style.zIndex = '10';
+      
+      const targetCell = findCellUnderPointer(e.clientX, e.clientY);
+      
+      if (targetCell && isCellEmpty(targetCell.id)) {
+        draggingApple.cellId = targetCell.id;
+      }
+      
+      const dest = getCellPosition(draggingApple.cellId);
+      draggingApple.el.classList.add('apple-moving-smooth');
+      draggingApple.el.style.transform = `translate3d(${dest.left}px, ${dest.top}px, 0) scale(1)`;
+      
+      const tempApple = draggingApple;
+      draggingApple = null;
+
+      setTimeout(() => {
+        tempApple.el.classList.remove('apple-moving-smooth');
+        tempApple.el.classList.add('apple-moving-fast');
+        checkManualCompletion();
+      }, 300);
+    }
+
+    function isCellEmpty(cellId) {
+      return !appleElements.some(a => a.cellId === cellId);
+    }
+
+    function findCellUnderPointer(x, y) {
+      const cells = document.querySelectorAll('[id^="cell-left-"], [id^="cell-right-"]');
+      for (let cell of cells) {
+        const rect = cell.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          return cell;
+        }
+      }
+      return null;
+    }
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+
+    function checkManualCompletion() {
+      if (step !== 0) return;
+
+      const leftCount = appleElements.filter(a => a.cellId.startsWith('cell-left')).length;
+      const rightCount = appleElements.filter(a => a.cellId.startsWith('cell-right')).length;
+      const total = num1 + num2;
+
+      let isCleared = false;
+      let completedSide = ''; 
+
+      if (total > 10) {
+        if (leftCount === 10) { isCleared = true; completedSide = 'left'; }
+        if (rightCount === 10) { isCleared = true; completedSide = 'right'; }
+      } else {
+        if (leftCount === total) { isCleared = true; completedSide = 'left'; }
+        if (rightCount === total) { isCleared = true; completedSide = 'right'; }
+      }
+
+      if (isCleared) {
+        lastCompletedSide = completedSide;
+        step = 3; 
+        updateUI(); 
+        
+        if (total > 10) {
+          if (completedSide === 'left') {
+            leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
+            gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+          } else {
+            rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
+            gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+          }
+          
+          setTimeout(() => {
+            if (completedSide === 'left') {
+              selectWrap2.classList.add('opacity-40');
+              const moved = 10 - num1;
+              const remain = num2 - moved;
+              sakuranboRMove.textContent = moved;
+              sakuranboRRemain.textContent = remain;
+              sakuranboRight.classList.remove('opacity-0');
+            } else {
+              selectWrap1.classList.add('opacity-40');
+              const moved = 10 - num2;
+              const remain = num1 - moved;
+              sakuranboLRemain.textContent = remain;
+              sakuranboLMove.textContent = moved;
+              sakuranboLeft.classList.remove('opacity-0');
+            }
+            
+            drawTenCircle(completedSide);
+            
+            setTimeout(() => {
+              step = 4;
+              updateUI();
+            }, 2500); 
+            
+          }, 1500);
+        } else {
+          setTimeout(() => {
+            step = 4;
+            updateUI();
+          }, 2000); 
+        }
+      }
+    }
+
+    function executeAnimation() {
+      if (isMoving) return;
+      isMoving = true;
+      step = 1;
+      updateUI();
+
+      const moveLeftToRight = num1 < num2;
+      const movingColor = moveLeftToRight ? 'red' : 'blue';
+      const targetCellPrefix = moveLeftToRight ? 'cell-right' : 'cell-left';
+      const limit = moveLeftToRight ? num2 : num1;
+      const maxMovable = moveLeftToRight ? num1 : num2;
+      const completedSide = moveLeftToRight ? 'right' : 'left';
+      lastCompletedSide = completedSide;
+
+      const moveCount = (num1 + num2 > 10) ? Math.min(10 - limit, maxMovable) : maxMovable;
+      const remainCount = maxMovable - moveCount;
+      const targetIsLeft = num1 >= num2;
+      
+      if (targetIsLeft) {
+        leftBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
+        gridLeft.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+      } else {
+        rightBox.className = 'flex flex-col items-center relative transition-all duration-700 p-2 sm:p-4 rounded-2xl bg-pink-50 ring-4 ring-pink-200';
+        gridRight.className = 'grid grid-cols-5 gap-1 sm:gap-2 p-1.5 sm:p-3 rounded-2xl transition-all duration-700 bg-pink-100 ring-4 ring-pink-300 shadow-inner';
+      }
+
+      if (num1 + num2 > 10) {
+        if (moveLeftToRight) {
+          selectWrap1.classList.add('opacity-40');
+          sakuranboLRemain.textContent = remainCount;
+          sakuranboLMove.textContent = moveCount;
+          sakuranboLeft.classList.remove('opacity-0');
+        } else {
+          selectWrap2.classList.add('opacity-40');
+          sakuranboRMove.textContent = moveCount;
+          sakuranboRRemain.textContent = remainCount;
+          sakuranboRight.classList.remove('opacity-0');
+        }
+      }
+
+      const candidates = appleElements.filter(a => a.color === movingColor);
+      candidates.sort((a, b) => b.originalIdx - a.originalIdx);
+      const movingApples = candidates.slice(0, moveCount);
+
+      const targetIndices = [];
+      for (let i = limit; i < limit + moveCount; i++) {
+        targetIndices.push(i);
+      }
+
+      const sortByX = (idxA, idxB) => {
+        const xA = idxA % 5;
+        const xB = idxB % 5;
+        if (xA !== xB) return xA - xB;
+        return idxA - idxB;
+      };
+
+      movingApples.sort((a, b) => sortByX(a.originalIdx, b.originalIdx));
+      targetIndices.sort(sortByX);
+
+      for (let i = 0; i < movingApples.length; i++) {
+        movingApples[i].targetCellId = `${targetCellPrefix}-${targetIndices[i]}`;
+      }
+
+      setTimeout(() => {
+        movingApples.forEach(item => {
+          item.el.classList.remove('apple-moving-fast');
+          item.el.classList.add('apple-moving-smooth');
+          item.el.style.zIndex = '60';
+          const curPos = getCellPosition(item.cellId);
+          item.el.style.transform = `translate3d(${curPos.left}px, ${curPos.top - 60}px, 0) scale(1.15)`;
+        });
+
+        setTimeout(() => {
+          movingApples.forEach(item => {
+            const destPos = getCellPosition(item.targetCellId);
+            item.el.style.transform = `translate3d(${destPos.left}px, ${destPos.top - 60}px, 0) scale(1.15)`;
+          });
+
+          setTimeout(() => {
+            movingApples.forEach(item => {
+              const destPos = getCellPosition(item.targetCellId);
+              item.el.style.transform = `translate3d(${destPos.left}px, ${destPos.top}px, 0) scale(1)`;
+            });
+
+            setTimeout(() => {
+              if (num1 + num2 > 10) {
+                 drawTenCircle(completedSide);
+
+                 setTimeout(() => {
+                   step = 4;
+                   isMoving = false;
+                   updateUI();
+                 }, 1700);
+              } else {
+                 setTimeout(() => {
+                   step = 4;
+                   isMoving = false;
+                   updateUI();
+                 }, 700);
+              }
+            }, 1200); 
+          }, 1200);
+        }, 1200);
+      }, 800); 
+    }
+
+    function drawTenCircle(completedSide) {
+      const equationArea = document.getElementById('equation-area');
+      const svg = document.getElementById('ten-circle-svg');
+      if (!equationArea || !svg) return;
+
+      svg.innerHTML = '';
+      const areaRect = equationArea.getBoundingClientRect();
+      
+      let el1, el2;
+      if (completedSide === 'left') {
+        el1 = document.getElementById('select-wrap-1');
+        el2 = document.getElementById('sakuranbo-r-move');
+      } else {
+        el1 = document.getElementById('select-wrap-2');
+        el2 = document.getElementById('sakuranbo-l-move');
+      }
+
+      if (!el1 || !el2) return;
+
+      const rect1 = el1.getBoundingClientRect();
+      const rect2 = el2.getBoundingClientRect();
+
+      const c1 = {
+        x: rect1.left - areaRect.left + rect1.width / 2,
+        y: rect1.top - areaRect.top + rect1.height / 2
+      };
+      const c2 = {
+        x: rect2.left - areaRect.left + rect2.width / 2,
+        y: rect2.top - areaRect.top + rect2.height / 2
+      };
+
+      const cx = (c1.x + c2.x) / 2;
+      const cy = (c1.y + c2.y) / 2;
+
+      const dx = c2.x - c1.x;
+      const dy = c2.y - c1.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      const paddingX = 40; 
+      const paddingY = 45; 
+      const rx = (distance / 2) + paddingX;
+      const ry = Math.max(rect1.height, rect2.height) / 2 + paddingY;
+
+      const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      ellipse.setAttribute("cx", cx);
+      ellipse.setAttribute("cy", cy);
+      ellipse.setAttribute("rx", rx);
+      ellipse.setAttribute("ry", ry);
+      ellipse.setAttribute("fill", "transparent");
+      ellipse.setAttribute("stroke", "#f472b6"); // pink-400
+      ellipse.setAttribute("stroke-width", "6");
+      ellipse.setAttribute("transform", `rotate(${angleDeg} ${cx} ${cy})`);
+      
+      svg.appendChild(ellipse);
+      svg.classList.remove('opacity-0');
+    }
+
+    function nextQuestion() {
+      let n1, n2;
+      do {
+        n1 = Math.floor(Math.random() * 8) + 2; 
+        const minN2 = Math.max(2, 11 - n1);
+        const maxN2 = 9;
+        n2 = Math.floor(Math.random() * (maxN2 - minN2 + 1)) + minN2;
+      } while (n1 === num1 && n2 === num2); 
+
+      num1 = n1;
+      num2 = n2;
+      step = 0;
+      isMoving = false;
+
+      updateUI();
+      renderApplesInstantly();
+    }
+
+    actionBtn.addEventListener('click', () => {
+      if (appMode === 'auto' && step === 0) {
+        executeAnimation();
+      } else if (step === 4) {
+        nextQuestion();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (step === 0 || step === 4) {
+        renderApplesInstantly();
+      }
+      if (num1 + num2 > 10 && lastCompletedSide && document.getElementById('ten-circle-svg') && !document.getElementById('ten-circle-svg').classList.contains('opacity-0')) {
+        drawTenCircle(lastCompletedSide);
+      }
+    });
+
+    // 初期化
+    setupGrids();
+    setupSelects();
+    updateUI();
+    requestAnimationFrame(() => {
+      renderApplesInstantly();
+    });
   </script>
 </body>
 </html>

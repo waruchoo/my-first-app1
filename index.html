@@ -249,7 +249,11 @@
       isMoving = false;
       
       updateUI();
-      renderApplesInstantly();
+      
+      // 画面の表示切り替え（レイアウト計算）が完了してからリンゴを描画する
+      setTimeout(() => {
+        renderApplesInstantly();
+      }, 50);
     }
 
     function showStartScreen() {
@@ -779,11 +783,13 @@
     });
 
     window.addEventListener('resize', () => {
-      if (step === 0 || step === 4) {
-        renderApplesInstantly();
-      }
-      if (num1 + num2 > 10 && lastCompletedSide && document.getElementById('ten-circle-svg') && !document.getElementById('ten-circle-svg').classList.contains('opacity-0')) {
-        drawTenCircle(lastCompletedSide);
+      if (!appScreen.classList.contains('hide-screen')) {
+        if (step === 0 || step === 4) {
+          renderApplesInstantly();
+        }
+        if (num1 + num2 > 10 && lastCompletedSide && document.getElementById('ten-circle-svg') && !document.getElementById('ten-circle-svg').classList.contains('opacity-0')) {
+          drawTenCircle(lastCompletedSide);
+        }
       }
     });
 
@@ -791,9 +797,8 @@
     setupGrids();
     setupSelects();
     updateUI();
-    requestAnimationFrame(() => {
-      renderApplesInstantly();
-    });
+    // ※アプリ画面非表示の状態でリンゴを描画するとサイズが0になるため、
+    // ここでの初期描画処理（requestAnimationFrame）は削除しました。
   </script>
 </body>
 </html>

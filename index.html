@@ -386,13 +386,13 @@
 
         if (appMode === 'auto') {
           manualHint.classList.add('invisible');
-          actionBtn.style.display = 'block';
+          actionBtn.style.visibility = 'visible';
           actionBtn.disabled = false;
           actionBtn.textContent = 'りんごを うごかす ✨';
           actionBtn.className = '-mt-4 md:-mt-8 px-5 py-2.5 text-lg md:text-xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-2/3 max-w-[260px] bg-orange-400 hover:bg-orange-500 cursor-pointer z-20';
         } else if (appMode === 'manual') {
           manualHint.classList.remove('invisible');
-          actionBtn.style.display = 'none'; // 手動モード開始時は非表示
+          actionBtn.style.visibility = 'hidden'; // 手動モード開始時は透明にしておく
         }
 
       } else if (step === 1) { 
@@ -413,7 +413,7 @@
         arrow1.style.display = 'none';
         arrow2.style.display = 'none';
         manualHint.classList.add('invisible');
-        actionBtn.style.display = 'none';
+        actionBtn.style.visibility = 'hidden';
 
       } else if (step === 4) { 
         selectNum1.disabled = true;
@@ -426,7 +426,7 @@
         manualHint.classList.add('invisible');
 
         // ★ クリア完了時に「つぎの もんだい」ボタンを確実に表示
-        actionBtn.style.display = 'block';
+        actionBtn.style.visibility = 'visible';
         actionBtn.disabled = false;
         actionBtn.textContent = 'つぎの もんだい ➡️';
         actionBtn.className = '-mt-4 md:-mt-8 px-5 py-2.5 text-lg md:text-xl font-bold rounded-full text-white shadow-lg transition-transform active:scale-95 w-2/3 max-w-[260px] bg-green-500 hover:bg-green-600 cursor-pointer z-20';
@@ -612,12 +612,17 @@
               sakuranboLeft.classList.remove('opacity-0');
             }
             
-            drawTenCircle(completedSide);
-            
+            // さくらんぼ図のフェードイン完了(0.5秒) ＋ さらに1秒待機 ＝ 1.5秒(1500ms)後に楕円を描く
             setTimeout(() => {
-              step = 4;
-              updateUI();
-            }, 2500); 
+              drawTenCircle(completedSide);
+              
+              // 楕円が表示されてから、さらに少し待って「つぎの もんだい」ボタンを出す
+              setTimeout(() => {
+                step = 4;
+                updateUI();
+              }, 1500);
+              
+            }, 1500); 
             
           }, 1500);
         } else {
